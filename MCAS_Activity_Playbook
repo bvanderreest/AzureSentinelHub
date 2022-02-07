@@ -2,104 +2,7 @@
     "definition": {
         "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         "actions": {
-            "Initialize_variable": {
-                "inputs": {
-                    "variables": [
-                        {
-                            "name": "MCAS_API_Token",
-                            "type": "string",
-                            "value": "Token QlxXXXXXXXXXXXXX="
-                        }
-                    ]
-                },
-                "runAfter": {},
-                "type": "InitializeVariable"
-            },
-            "Initialize_variable_2": {
-                "inputs": {
-                    "variables": [
-                        {
-                            "name": "TempArrayVar",
-                            "type": "array"
-                        }
-                    ]
-                },
-                "runAfter": {
-                    "Initialize_variable": [
-                        "Succeeded"
-                    ]
-                },
-                "type": "InitializeVariable"
-            },
-            "Initialize_variable_3": {
-                "inputs": {
-                    "variables": [
-                        {
-                            "name": "StartTime",
-                            "type": "integer",
-                            "value": "@ticks(addMinutes(utcNow(), -5))"
-                        }
-                    ]
-                },
-                "runAfter": {
-                    "Initialize_variable_5": [
-                        "Succeeded"
-                    ]
-                },
-                "type": "InitializeVariable"
-            },
-            "Initialize_variable_4": {
-                "inputs": {
-                    "variables": [
-                        {
-                            "name": "EndTime",
-                            "type": "integer",
-                            "value": "@ticks(utcNow())"
-                        }
-                    ]
-                },
-                "runAfter": {
-                    "Initialize_variable_3": [
-                        "Succeeded"
-                    ]
-                },
-                "type": "InitializeVariable"
-            },
-            "Initialize_variable_5": {
-                "inputs": {
-                    "variables": [
-                        {
-                            "name": "Ticks1970",
-                            "type": "integer",
-                            "value": "@ticks('1970-01-01')"
-                        }
-                    ]
-                },
-                "runAfter": {
-                    "Initialize_variable_2": [
-                        "Succeeded"
-                    ]
-                },
-                "type": "InitializeVariable"
-            },
-            "Initialize_variable_6": {
-                "inputs": {
-                    "variables": [
-                        {
-                            "name": "StartTimeEpoch",
-                            "type": "integer",
-                            "value": "@div(sub(variables('StartTime'), variables('Ticks1970')),10000)"
-                        }
-                    ]
-                },
-                "runAfter": {
-                    "Initialize_variable_4": [
-                        "Succeeded"
-                    ]
-                },
-                "type": "InitializeVariable"
-            },
-            "Initialize_variable_7": {
+            "Define_End_Time_EPOCH": {
                 "inputs": {
                     "variables": [
                         {
@@ -110,13 +13,66 @@
                     ]
                 },
                 "runAfter": {
-                    "Initialize_variable_6": [
+                    "Define_Start_Time_EPOCH": [
                         "Succeeded"
                     ]
                 },
                 "type": "InitializeVariable"
             },
-            "Initialize_variable_8": {
+            "Define_End_Time_UNIX": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "EndTime",
+                            "type": "integer",
+                            "value": "@ticks(utcNow())"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Define_Start_Time_UNIX": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Define_Last_Run_Time": {
+                "inputs": {
+                    "body": {
+                        "LastRunTime": "@{add(variables('EndTimeEpoch'),1)}"
+                    },
+                    "headers": {
+                        "If-Match": "*"
+                    },
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azuretables']['connectionId']"
+                        }
+                    },
+                    "method": "put",
+                    "path": "/Tables/@{encodeURIComponent('MCASactivitiesLOGdate')}/entities/etag(PartitionKey='@{encodeURIComponent('MCAS')}',RowKey='@{encodeURIComponent('Activity')}')"
+                },
+                "runAfter": {
+                    "Loop_MCAS_API_Call": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection"
+            },
+            "Define_MCAS_API_Token": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "MCAS_API_Token",
+                            "type": "string",
+                            "value": "Token XXXXX"
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "type": "InitializeVariable"
+            },
+            "Define_Skip_Integer": {
                 "inputs": {
                     "variables": [
                         {
@@ -127,33 +83,129 @@
                     ]
                 },
                 "runAfter": {
-                    "Initialize_variable_7": [
+                    "Define_End_Time_EPOCH": [
                         "Succeeded"
                     ]
                 },
                 "type": "InitializeVariable"
             },
-            "Initialize_variable_9": {
+            "Define_Start_Time_EPOCH": {
                 "inputs": {
                     "variables": [
                         {
-                            "name": "HasNext",
-                            "type": "string",
-                            "value": "notnull"
+                            "name": "StartTimeEpoch",
+                            "type": "integer",
+                            "value": "@div(sub(variables('StartTime'), variables('Ticks1970')),10000)"
                         }
                     ]
                 },
                 "runAfter": {
-                    "Initialize_variable_8": [
+                    "Define_End_Time_UNIX": [
                         "Succeeded"
                     ]
                 },
                 "type": "InitializeVariable"
             },
-            "Until_2": {
+            "Define_Start_Time_UNIX": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "StartTime",
+                            "type": "integer",
+                            "value": "@ticks(addMinutes(utcNow(), -5))"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Define_UNIX_1970": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Define_Temp_Array": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "TempArrayVar",
+                            "type": "array"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Define_MCAS_API_Token": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Define_UNIX_1970": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "Ticks1970",
+                            "type": "integer",
+                            "value": "@ticks('1970-01-01')"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Define_Temp_Array": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Get_Last_Run_Entity": {
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azuretables']['connectionId']"
+                        }
+                    },
+                    "method": "get",
+                    "path": "/Tables/@{encodeURIComponent('MCASactivitiesLOGdate')}/entities(PartitionKey='@{encodeURIComponent('MCAS')}',RowKey='@{encodeURIComponent('Activity')}')"
+                },
+                "runAfter": {
+                    "HasNext_Status": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection"
+            },
+            "HasNext_Status": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "HasDataStatus",
+                            "type": "integer",
+                            "value": -1
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Define_Skip_Integer": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
+            },
+            "Loop_MCAS_API_Call": {
                 "actions": {
                     "Condition": {
                         "actions": {
+                            "Clear_Array": {
+                                "inputs": {
+                                    "name": "TempArrayVar",
+                                    "value": []
+                                },
+                                "runAfter": {
+                                    "Send_Data": [
+                                        "Succeeded"
+                                    ]
+                                },
+                                "type": "SetVariable"
+                            },
                             "Compose": {
                                 "inputs": "@variables('TempArrayVar')",
                                 "runAfter": {
@@ -182,7 +234,7 @@
                                 "inputs": {
                                     "body": "@{outputs('Compose')}",
                                     "headers": {
-                                        "Log-Type": "MCASActivity2"
+                                        "Log-Type": "MCAS_ActivityLog"
                                     },
                                     "host": {
                                         "connection": {
@@ -226,18 +278,17 @@
                                     "date": {
                                         "range": {
                                             "end": "@variables('EndTimeEpoch')",
-                                            "start": "@variables('StartTimeEpoch')"
+                                            "start": "@int(body('Parse_Last_Run_Entity')?['LastRunTime'])"
                                         }
                                     }
                                 },
                                 "skip": "@variables('Skip')"
                             },
                             "headers": {
-                                "Authorization": "@variables('MCAS_API_
-                                ')"
+                                "Authorization": "@variables('MCAS_API_Token')"
                             },
                             "method": "POST",
-                            "uri": "https://msdx705805.us3.portal.cloudappsecurity.com/api/v1/activities/"
+                            "uri": "https://CLOUDAPP_API_URL/api/v1/activities/"
                         },
                         "runAfter": {},
                         "type": "Http"
@@ -248,7 +299,7 @@
                             "value": 100
                         },
                         "runAfter": {
-                            "Condition": [
+                            "Set_HasData_Status": [
                                 "Succeeded"
                             ]
                         },
@@ -867,30 +918,81 @@
                         },
                         "type": "ParseJson"
                     },
-                    "Set_variable": {
+                    "Set_HasData_Status": {
                         "inputs": {
-                            "name": "HasNext",
-                            "value": "@{body('Parse_JSON')?['body']?['hasNext']}"
+                            "name": "HasDataStatus",
+                            "value": "@length(body('HTTP')['data'])"
                         },
                         "runAfter": {
-                            "Increment_variable": [
+                            "Condition": [
                                 "Succeeded"
                             ]
                         },
                         "type": "SetVariable"
                     }
                 },
-                "expression": "@equals(variables('HasNext'), '')",
+                "expression": "@equals(variables('HasDataStatus'), 0)",
                 "limit": {
                     "count": 60,
                     "timeout": "PT1H"
                 },
                 "runAfter": {
-                    "Initialize_variable_9": [
+                    "Set_Last_Run_Time_Variable": [
                         "Succeeded"
                     ]
                 },
                 "type": "Until"
+            },
+            "Parse_Last_Run_Entity": {
+                "inputs": {
+                    "content": "@body('Get_Last_Run_Entity')",
+                    "schema": {
+                        "properties": {
+                            "LastRunTime": {
+                                "type": "string"
+                            },
+                            "PartitionKey": {
+                                "type": "string"
+                            },
+                            "RowKey": {
+                                "type": "string"
+                            },
+                            "Timestamp": {
+                                "type": "string"
+                            },
+                            "odata.etag": {
+                                "type": "string"
+                            },
+                            "odata.metadata": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "runAfter": {
+                    "Get_Last_Run_Entity": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ParseJson"
+            },
+            "Set_Last_Run_Time_Variable": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "LastRunTime",
+                            "type": "string",
+                            "value": "@body('Parse_Last_Run_Entity')?['LastRunTime']"
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Parse_Last_Run_Entity": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "InitializeVariable"
             }
         },
         "contentVersion": "1.0.0.0",
@@ -903,9 +1005,13 @@
         },
         "triggers": {
             "Recurrence": {
+                "evaluatedRecurrence": {
+                    "frequency": "Minute",
+                    "interval": 30
+                },
                 "recurrence": {
-                    "frequency": "Day",
-                    "interval": 1
+                    "frequency": "Minute",
+                    "interval": 30
                 },
                 "type": "Recurrence"
             }
@@ -915,9 +1021,14 @@
         "$connections": {
             "value": {
                 "azureloganalyticsdatacollector": {
-                    "connectionId": "/subscriptions/XXX-XX-XX-XXX-XXXX/resourceGroups/Demos-RG1/providers/Microsoft.Web/connections/azureloganalyticsdatacollector",
+                    "connectionId": "/subscriptions/XXXXX-XXXX-XXXX-XXXX-XXXXXXX/resourceGroups/XXXXX/providers/Microsoft.Web/connections/azureloganalyticsdatacollector",
                     "connectionName": "azureloganalyticsdatacollector",
-                    "id": "/subscriptions/XXX-XX-XX-XXX-XXXX/providers/Microsoft.Web/locations/centralus/managedApis/azureloganalyticsdatacollector"
+                    "id": "/subscriptions/XXXXX-XXXX-XXXX-XXXX-XXXXXXX/providers/Microsoft.Web/locations/XXXXX/managedApis/azureloganalyticsdatacollector"
+                },
+                "azuretables": {
+                    "connectionId": "/subscriptions/XXXXX-XXXX-XXXX-XXXX-XXXXXXX/resourceGroups/XXXXX/providers/Microsoft.Web/connections/azuretables",
+                    "connectionName": "azuretables",
+                    "id": "/subscriptions/XXXXX-XXXX-XXXX-XXXX-XXXXXXX/providers/Microsoft.Web/locations/XXXXXX/managedApis/azuretables"
                 }
             }
         }
